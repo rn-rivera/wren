@@ -344,6 +344,8 @@ ObjMap* wrenNewMap(WrenVM* vm)
 {
   ObjMap* map = ALLOCATE(vm, ObjMap);
   initObj(vm, &map->obj, OBJ_MAP, vm->mapClass);
+  map->isWeak = false;
+  map->nextWeak = NULL;
   map->capacity = 0;
   map->count = 0;
   map->entries = NULL;
@@ -1050,7 +1052,10 @@ static void blackenMap(WrenVM* vm, ObjMap* map)
     if (IS_UNDEFINED(entry->key)) continue;
 
     wrenGrayValue(vm, entry->key);
-    wrenGrayValue(vm, entry->value);
+    
+    // If the map is weak, don't mark the values.
+    if (!map->isWeak)
+	    wrenGrayValue(vm, entry->value);
   }
 
   // Keep track of how much memory is still in use.

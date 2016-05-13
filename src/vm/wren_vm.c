@@ -152,6 +152,35 @@ void wrenCollectGarbage(WrenVM* vm)
   // Now that we have grayed the roots, do a depth-first search over all of the
   // reachable objects.
   wrenBlackenObjects(vm);
+  
+  // Remove the entries from weak maps that reference white objects.
+  ObjMap **map = &vm->firstWeak;
+  while (*map != NULL)
+  {
+    // There is no point in removing the entries if the map itself is white,
+    // since the whole thing will be deleted in a moment.
+    if (!((*map)->obj.isDark))
+    {
+      // White maps are about to be deleted anyway, so just remove it from the
+      // weak list and move on.
+      ObjMap *unreached = *map;
+      *map = unreached->nextWeak;
+    }
+    else
+    {
+      // Remove the entries in the map that point to white objects.
+      for (uint32_t i = 0; i < (*map)->capacity; i++)
+      {
+        if (IS_OBJ((*map)->entries[i].value)
+         && !AS_OBJ((*map)->entries[i].value)->isDark)
+        {
+          (*map)->entries[i].key = UNDEFINED_VAL;
+          (*map)->entries[i].value = TRUE_VAL;
+        }
+      }
+      map = &(*map)->nextWeak;
+    }
+  }
 
   // Collect the white objects.
   Obj** obj = &vm->first;

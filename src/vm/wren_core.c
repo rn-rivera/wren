@@ -367,6 +367,15 @@ DEF_PRIMITIVE(map_new)
   RETURN_OBJ(wrenNewMap(vm));
 }
 
+DEF_PRIMITIVE(map_weak)
+{
+  ObjMap *map = wrenNewMap(vm);
+  map->isWeak = true;
+  map->nextWeak = vm->firstWeak;
+  vm->firstWeak = map;
+  RETURN_OBJ(map);
+}
+
 DEF_PRIMITIVE(map_subscript)
 {
   if (!validateKey(vm, args[1])) return false;
@@ -1273,6 +1282,7 @@ void wrenInitializeCore(WrenVM* vm)
 
   vm->mapClass = AS_CLASS(wrenFindVariable(vm, coreModule, "Map"));
   PRIMITIVE(vm->mapClass->obj.classObj, "new()", map_new);
+  PRIMITIVE(vm->mapClass->obj.classObj, "weak()", map_weak);
   PRIMITIVE(vm->mapClass, "[_]", map_subscript);
   PRIMITIVE(vm->mapClass, "[_]=(_)", map_subscriptSetter);
   PRIMITIVE(vm->mapClass, "addCore_(_,_)", map_addCore);

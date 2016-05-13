@@ -443,9 +443,12 @@ typedef struct
 // for a key, we will continue past tombstones, because the desired key may be
 // found after them if the key that was removed was part of a prior collision.
 // When the array gets resized, all tombstones are discarded.
-typedef struct
+typedef struct sObjMap
 {
   Obj obj;
+  
+  bool isWeak;
+  struct sObjMap *nextWeak;
 
   // The number of entries allocated.
   uint32_t capacity;

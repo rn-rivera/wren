@@ -63,6 +63,9 @@ struct WrenVM
 
   // The first object in the linked list of all currently allocated objects.
   Obj* first;
+  
+  // Weak maps form their own linked list.
+  ObjMap *firstWeak;
 
   // The "gray" set for the garbage collector. This is the stack of unprocessed
   // objects while a garbage collection pass is in process.
